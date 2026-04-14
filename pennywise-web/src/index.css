@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-green: #39FF14;
+  --color-soft-violet: #8A2BE2;
+  --color-dark-bg: #121212;
+  --color-card-bg: #1E1E1E;
+}
+
+body {
+  @apply bg-dark-bg text-white m-0 min-h-screen font-sans antialiased;
+}

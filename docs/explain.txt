@@ -1,0 +1,73 @@
+=============================================================
+             PENNYWISE - COMPREHENSIVE PROJECT DOCUMENTATION 
+=============================================================
+
+1. PROJECT OVERVIEW
+-------------------
+Pennywise is an enterprise-grade group expense management and financial tracking application. It solves complex fractional ownership and settlement paths, automating financial analysis, group expense tracking, and social interactions. It has evolved from a simple expense tracker to a comprehensive ecosystem including algorithmic debt resolution, artificial intelligence for subscription tracking natively in Postgres without heavy ML libraries, and community forum features.
+
+2. TECHNOLOGY STACK
+-------------------
+- **Frontend Layer:** React.js initialized via Vite. 
+    - *Libraries:* TailwindCSS (Glassmorphism & UX styling), React-Router-Dom (Navigation & Component lifecycle management), Chart.js/react-chartjs-2 (Graphical analytics).
+- **Backend Protocol:** Node.js powered by an Express.js HTTP Gateway.
+    - *Libraries:* bcrypt (Security hashing), JsonWebToken (Stateful authorization), CORS (Domain security).
+- **Database Layer:** PostgreSQL v14+ via raw `pg` bindings.
+
+3. ARCHITECTURE DEEP DIVE
+-------------------------
+The application runs on a Monolithic MVC Server-Client distribution model. 
+Requests pass from the Client via standard HTTPS mappings or WSS streams. They intercept via an `AuthMiddleware.js` layer that unpacks local-storage JWT signatures mathematically to verify identities. Verified requests drop into structured Controllers mapped precisely to specific tables inside the PostgreSQL persistence layer. Complex operations route to independent Services (`settlementService.js`) returning standardized Promise chains representing O(N log N) Graph responses.
+
+4. COMPLETE FILE MAP
+--------------------
+Pennywise (Root)
+├── pennywise-backend/
+│   ├── database/ (setup_db.sql, setup_community.sql, setup_advanced_features.sql)
+│   ├── src/
+│   │   ├── controllers/ (authController, expenseController, userController, etc.)
+│   │   ├── middleware/ (authMiddleware.js)
+│   │   ├── repositories/ (expenseRepository, userRepository, groupRepository)
+│   │   ├── routes/ (Mapped express.Router() files)
+│   │   ├── services/ (Algorithmic wrappers: quickAddService, settlementService)
+│   │   ├── utils/ (cronJobs, logger)
+│   │   └── db.js (Postgres Singleton configuration)
+│   └── index.js (Gateway script)
+│
+└── pennywise-web/
+    ├── public/
+    ├── src/
+    │   ├── components/ (MainLayout.jsx)
+    │   ├── context/ (AuthContext.jsx, FinanceContext.jsx)
+    │   ├── screens/ (AuthScreen, DashboardHome, ProfilePage, CommunityScreen, SettlementsPage, etc.)
+    │   ├── App.jsx (Root Routing Node)
+    │   ├── index.css (Tailwind base injections)
+    │   └── main.jsx (React.StrictMode DOM Injector)
+    ├── tailwind.config.js
+    └── package.json
+
+5. AUTHENTICATION & ROLE SYSTEM
+-------------------------------
+Uses Stateless Token Authentication.
+When a user inputs plaintext via `/api/auth/login`, `bcrypt` compares the hash mathematically. If verified, the server constructs a JSON Web Token securely signing the User ID mapped against an arbitrary `JWT_SECRET`. 
+This string must be stored safely in the Client's `localStorage` and sent actively within the `Authorization: Bearer <String>` header to access any Private `authMiddleware.js` Routes.
+Currently, the system is horizontally flat (Every User inherits standard Role capabilities minus object-ownership modification blockers managed by ForeignKeys).
+
+6. TESTING & BUILD SYSTEM
+-------------------------
+- **Build System:** Leverage Vite's native Rollup engine. `npm run dev` provisions an integrated optimized HMR pipeline spinning on port 5173 natively parsing JSX/TSX.
+- **Testing Scope:** Backend features are functionally validated over runtime, employing explicit trigger scripts inside Postgres directly mapping unit tests against constraints before they commit globally (ACID validation).
+
+7. KEY CODE WALKTHROUGH
+-----------------------
+`SettlementService.processQuickAdd()` 
+Takes raw text (e.g. "Dinner 1500 with rahul@gmail.com") and intercepts the string parsing. Bypassing massive form inputs, it dynamically executes regex, mapping the remainder of the string into SQL parameterized inputs verifying the target recipient asynchronously.
+
+`userController.updatePassword()` 
+Highlights native server security limits. Validates string length, retrieves secure prior hashes implicitly blocking brute iterations, hashes the new string natively passing compute cycles directly over to OpenSSL C bindings internally via Node's bcrypt adapter, and injects exactly securely via parameter escapes protecting entirely against SQLi.
+
+8. FUTURE DEVELOPMENT SCOPE
+---------------------------
+- **Machine Learning Integration:** Offload the time-series Subscription Detection currently inside Postgres sweeps to a dedicated Flask Python execution sub-agent leveraging native ARIMA models.
+- **Microservice Refactor:** Break `/api/community` into a fully separated WebSocket microserver since article traffic and static expense mapping possess massively different load profiles requiring different horizontal scaling methods within AWS.
+- **WebSocket Scaling:** Add Redis standard pub/sub memory buses to enable multi-instance WebSockets to natively broadcast across distinct Node container spaces.
